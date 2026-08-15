@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/menu_button.dart';
 import '../widgets/press_button.dart';
@@ -12,11 +13,36 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int presses = 0;
+  int pulse = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    loadPresses();
+  }
+
+  Future<void> loadPresses() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      presses = prefs.getInt('presses') ?? 0;
+    });
+  }
+
+  Future<void> savePresses() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('presses', presses);
+  }
 
   void onPress() {
     setState(() {
       presses++;
+
+      if (presses % 10 == 0) {
+        pulse++;
+      }
     });
+
+    savePresses();
   }
 
   @override
@@ -26,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Profil
             Positioned(
               top: 16,
               left: 16,
@@ -35,8 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () {},
               ),
             ),
-
-            // Leaderboard
             Positioned(
               top: 16,
               right: 68,
@@ -45,8 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () {},
               ),
             ),
-
-            // Paramètres
             Positioned(
               top: 16,
               right: 16,
@@ -55,8 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () {},
               ),
             ),
-
-            // Contenu central
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -66,12 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(
                       fontSize: 42,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: -1,
                     ),
                   ),
-
                   const SizedBox(height: 4),
-
                   const Text(
                     'TAPS',
                     style: TextStyle(
@@ -80,11 +96,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       letterSpacing: 3,
                     ),
                   ),
-
                   const SizedBox(height: 45),
-
-                  PressButton(
-                    onPressed: onPress,
+                  TweenAnimationBuilder<double>(
+                    key: ValueKey(pulse),
+                    tween: Tween(begin: 1.0, end: 1.18),
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                    builder: (context, scale, child) {
+                      final s = 1.0 + (1.18 - scale);
+                      return Transform.scale(scale: s, child: child);
+                    },
+                    child: PressButton(onPressed: onPress),
                   ),
                 ],
               ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class PressButton extends StatefulWidget {
+class PressButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const PressButton({
@@ -9,62 +9,51 @@ class PressButton extends StatefulWidget {
   });
 
   @override
-  State<PressButton> createState() => _PressButtonState();
-}
-
-class _PressButtonState extends State<PressButton> {
-  bool isPressed = false;
-
-  void pressDown() {
-    setState(() {
-      isPressed = true;
-    });
-  }
-
-  void pressUp() {
-    setState(() {
-      isPressed = false;
-    });
-
-    widget.onPressed();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => pressDown(),
-      onTapUp: (_) => pressUp(),
-      onTapCancel: () {
-        setState(() {
-          isPressed = false;
-        });
-      },
-      child: AnimatedScale(
-        scale: isPressed ? 0.94 : 1.0,
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        child: Container(
-          width: 190,
-          height: 190,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFFE53935),            
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.20),
-                blurRadius: isPressed ? 4 : 14,
-                offset: Offset(0, isPressed ? 2 : 8),
-              ),
+      onTap: onPressed,
+      child: Container(
+        width: 230,
+        height: 230,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFF6B6B),
+              Color(0xFFFF2D2D),
+              Color(0xFFC40000),
             ],
           ),
-          child: const Center(
-            child: Text(
-              'PRESS',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.45),
+              blurRadius: 30,
+              offset: const Offset(0, 18),
+            ),
+            const BoxShadow(
+              color: Color(0xFF7A0000),
+              blurRadius: 0,
+              spreadRadius: -8,
+              offset: Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Container(
+            width: 185,
+            height: 185,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                center: Alignment(-0.3, -0.3),
+                radius: 0.9,
+                colors: [
+                  Color(0xFFFF8A8A),
+                  Color(0xFFFF3B3B),
+                  Color(0xFFD50000),
+                ],
               ),
             ),
           ),

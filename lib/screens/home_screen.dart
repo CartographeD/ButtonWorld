@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'profile_screen.dart';
+import '../services/press_service.dart';
 import '../widgets/menu_button.dart';
 import '../widgets/press_button.dart';
 
@@ -12,37 +12,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int presses = 0;
-  int pulse = 0;
+  final PressService pressService = PressService();
 
   @override
   void initState() {
     super.initState();
-    loadPresses();
+
+    loadScore();
   }
 
-  Future<void> loadPresses() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      presses = prefs.getInt('presses') ?? 0;
-    });
+  Future<void> loadScore() async {
+    await pressService.load();
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
-  Future<void> savePresses() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('presses', presses);
-  }
+  Future<void> onPress() async {
+    await pressService.registerPress();
 
-  void onPress() {
-    setState(() {
-      presses++;
-
-      if (presses % 10 == 0) {
-        pulse++;
-      }
-    });
-
-    savePresses();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -57,22 +49,21 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 16,
               child: MenuButton(
                 icon: Icons.person_outline,
-                onTap: () {},
-              ),
-            ),
-            Positioned(
-              top: 16,
-              right: 68,
-              child: MenuButton(
-                icon: Icons.emoji_events_outlined,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ProfileScreen(),
+                    ),
+                  );
+                },
               ),
             ),
             Positioned(
               top: 16,
               right: 16,
               child: MenuButton(
-                icon: Icons.settings_outlined,
+                icon: Icons.emoji_events_outlined,
                 onTap: () {},
               ),
             ),
@@ -81,15 +72,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '$presses',
+                    '${pressService.presses}',
                     style: const TextStyle(
                       fontSize: 42,
                       fontWeight: FontWeight.w700,
+                      letterSpacing: -1,
                     ),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'TAPS',
+                    'PRESSES',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -97,16 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 45),
-                  TweenAnimationBuilder<double>(
-                    key: ValueKey(pulse),
-                    tween: Tween(begin: 1.0, end: 1.18),
-                    duration: const Duration(milliseconds: 180),
-                    curve: Curves.easeOut,
-                    builder: (context, scale, child) {
-                      final s = 1.0 + (1.18 - scale);
-                      return Transform.scale(scale: s, child: child);
-                    },
-                    child: PressButton(onPressed: onPress),
+                  PressButton(
+                    onPressed: onPress,
                   ),
                 ],
               ),

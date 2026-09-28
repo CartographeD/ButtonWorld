@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "328254761752",
+    "project_id": "buttonworld-6b8da",
+    "storage_bucket": "buttonworld-6b8da.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:328254761752:android:6a32b6f836adac9a9a8c6d",
+        "android_client_info": {
+          "package_name": "com.cartographe.buttonworld"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIVGZXumJGvQWb-ANvaPQ4Pa2AmU24THE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

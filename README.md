@@ -1,17 +1,30 @@
-# buttonworld
+# ButtonWorld
 
-A new Flutter project.
+ButtonWorld is a minimalist mobile game built around one action: **PRESS**.
 
-## Getting Started
+## Current V1
 
-This project is a starting point for a Flutter application.
+- PRESS score: 1 press = 1 point
+- Local persistence with SharedPreferences
+- Firebase anonymous authentication
+- Firestore player persistence
+- Tap Streak with an 800 ms continuation window
+- Best Tap Streak persistence
+- Milestones
+- Minimal profile
+- Leaderboard shell for World / Country / Season
+- Settings for sound and haptics
+- Cosmetic market shell
 
-A few resources to get you started if this is your first Flutter project:
+## Run
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+fvm flutter pub get
+fvm flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Android/Firebase configuration is already present in the project.
+
+## Important
+
+The current client-side PRESS synchronization is intentionally simple for development. A production leaderboard should move score validation to trusted backend logic and add appropriate anti-cheat protections before competitive launch.

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../data/countries.dart';
 import '../models/player.dart';
 import '../services/player_service.dart';
+import 'country_screen.dart';
+import 'goals_screen.dart';
+import 'settings_screen.dart';
 import 'username_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -54,6 +58,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> chooseCountry() async {
+    final selectedCountry = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CountryScreen(
+          selectedCountry: player?.country,
+        ),
+      ),
+    );
+
+    if (selectedCountry != null) {
+      await loadPlayer();
+    }
+  }
+
   void showComingSoon(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -63,63 +82,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  String getCountryFlag(String? countryName) {
+    if (countryName == null || countryName.isEmpty) {
+      return '🌍';
+    }
+
+    for (final country in countries) {
+      if (country.name == countryName) {
+        return country.flag;
+      }
+    }
+
+    return '🌍';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F0),
-      body: SafeArea(
-        child: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : player == null
-                ? const Center(
-                    child: Text(
-                      'Unable to load profile.',
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: loadPlayer,
-                    child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(
-                        20,
-                        12,
-                        20,
-                        32,
-                      ),
-                      children: [
-                        _buildTopBar(),
-                        const SizedBox(height: 28),
-                        _buildProfileHeader(),
-                        const SizedBox(height: 28),
-                        _buildMainStats(),
-                        const SizedBox(height: 16),
-                        _buildRecordCard(),
-                        const SizedBox(height: 16),
-                        _buildRankCard(),
-                        const SizedBox(height: 28),
-                        _buildAccountSection(),
-                        const SizedBox(height: 16),
-                        _buildSettingsButton(),
-                      ],
-                    ),
+    return SafeArea(
+      child: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : player == null
+              ? const Center(
+                  child: Text(
+                    'Unable to load profile.',
                   ),
-      ),
+                )
+              : RefreshIndicator(
+                  onRefresh: loadPlayer,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(
+                      20,
+                      12,
+                      20,
+                      32,
+                    ),
+                    children: [
+                      _buildTopBar(),
+                      const SizedBox(height: 28),
+                      _buildProfileHeader(),
+                      const SizedBox(height: 28),
+                      _buildMainStats(),
+                      const SizedBox(height: 16),
+                      _buildRecordCard(),
+                      const SizedBox(height: 16),
+                      _buildRankCard(),
+                      const SizedBox(height: 28),
+                      _buildGoalsSection(),
+                      const SizedBox(height: 16),
+                      _buildSettingsButton(),
+                    ],
+                  ),
+                ),
     );
   }
 
   Widget _buildTopBar() {
-    return Row(
-      children: [
-        _SmallIconButton(
-          icon: Icons.arrow_back_rounded,
-          onTap: () {
-            Navigator.pop(context);
-          },
-        ),
-        const Spacer(),
-        const Text(
+    return const SizedBox(
+      height: 44,
+      child: Center(
+        child: Text(
           'PROFILE',
           style: TextStyle(
             fontSize: 12,
@@ -127,41 +151,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
             letterSpacing: 3,
           ),
         ),
-        const Spacer(),
-        const SizedBox(
-          width: 44,
-          height: 44,
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildProfileHeader() {
     final username = player!.username ?? 'Player';
+    final hasCountry =
+        player!.country != null && player!.country!.isNotEmpty;
 
     return Column(
       children: [
-        Container(
-          width: 82,
-          height: 82,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE53935),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.person_outline_rounded,
-            color: Colors.white,
-            size: 38,
+        GestureDetector(
+          onTap: () {
+            showComingSoon('Profile customization');
+          },
+          child: Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE53935),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.person_outline_rounded,
+              color: Colors.white,
+              size: 40,
+            ),
           ),
         ),
+
         const SizedBox(height: 16),
+
         GestureDetector(
           onTap: editUsername,
           child: Row(
@@ -183,29 +211,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+
         const SizedBox(height: 7),
+
         GestureDetector(
-          onTap: () {
-            showComingSoon('Country selection');
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                player!.country ?? 'Country not set',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black.withValues(alpha: 0.55),
+          onTap: chooseCountry,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: hasCountry
+                  ? Colors.white
+                  : const Color(0xFFECECE8),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  getCountryFlag(player!.country),
+                  style: const TextStyle(
+                    fontSize: 18,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 5),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 17,
-                color: Colors.black.withValues(alpha: 0.45),
-              ),
-            ],
+                const SizedBox(width: 7),
+                Text(
+                  hasCountry
+                      ? player!.country!
+                      : 'Choose your country',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: hasCountry
+                        ? FontWeight.w700
+                        : FontWeight.w600,
+                    color: hasCountry
+                        ? Colors.black87
+                        : Colors.black54,
+                  ),
+                ),
+                const SizedBox(width: 3),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 17,
+                  color: Colors.black.withValues(alpha: 0.45),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -251,21 +304,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       icon: Icons.emoji_events_outlined,
       title: 'WORLD RANK',
       value: '—',
-      subtitle: 'Leaderboard coming soon',
+      subtitle: 'Your position in the world',
       onTap: () {
         showComingSoon('Leaderboard');
       },
     );
   }
 
-  Widget _buildAccountSection() {
+  Widget _buildGoalsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.only(left: 4, bottom: 10),
+          padding: EdgeInsets.only(
+            left: 4,
+            bottom: 10,
+          ),
           child: Text(
-            'ACCOUNT',
+            'PROGRESSION',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -276,47 +332,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
             child: InkWell(
               onTap: () {
-                showComingSoon('Google Play account linking');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const GoalsScreen(),
+                  ),
+                );
               },
-              borderRadius: BorderRadius.circular(18),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
+              borderRadius: BorderRadius.circular(20),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 17,
+                ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF4F4F0),
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      child: const Icon(
-                        Icons.account_circle_outlined,
-                        size: 23,
-                      ),
+                    Icon(
+                      Icons.track_changes_outlined,
+                      size: 22,
                     ),
-                    const SizedBox(width: 14),
-                    const Expanded(
+                    SizedBox(width: 14),
+                    Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Link your account',
+                            'Goals',
                             style: TextStyle(
                               fontSize: 15,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(height: 3),
                           Text(
-                            'Save your progress across devices',
+                            'Milestones & achievements',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.black54,
@@ -325,7 +382,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black45,
                     ),
@@ -343,16 +400,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: () {
-            showComingSoon('Settings');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SettingsScreen(),
+              ),
+            );
           },
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           child: const Padding(
             padding: EdgeInsets.symmetric(
               horizontal: 18,
@@ -411,7 +473,7 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,10 +526,10 @@ class _LargeInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Row(
@@ -477,7 +539,7 @@ class _LargeInfoCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: const Color(0xFFF4F4F0),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(15),
                 ),
                 child: Icon(
                   icon,
@@ -487,7 +549,8 @@ class _LargeInfoCard extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
@@ -523,36 +586,6 @@ class _LargeInfoCard extends StatelessWidget {
                 color: Colors.black38,
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SmallIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _SmallIconButton({
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: Icon(
-            icon,
-            size: 21,
           ),
         ),
       ),

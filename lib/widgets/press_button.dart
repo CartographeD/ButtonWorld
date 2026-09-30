@@ -1,59 +1,108 @@
 import 'package:flutter/material.dart';
 
-class PressButton extends StatelessWidget {
+class PressButton extends StatefulWidget {
   final VoidCallback onPressed;
+  final Color color;
 
   const PressButton({
     super.key,
     required this.onPressed,
+    this.color = const Color(0xFFE53935),
   });
+
+  @override
+  State<PressButton> createState() => _PressButtonState();
+}
+
+class _PressButtonState extends State<PressButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 80),
+      value: 0.0,
+    );
+
+    _scale = Tween<double>(
+      begin: 1.0,
+      end: 0.94,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handlePress() {
+    // Le PRESS est enregistré immédiatement.
+    widget.onPressed();
+
+    // L'animation est totalement indépendante du clic.
+    _controller.stop();
+
+    _controller.value = 1.0;
+
+    _controller.animateBack(
+      0.0,
+      duration: const Duration(milliseconds: 70),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 230,
-        height: 230,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFF6B6B),
-              Color(0xFFFF2D2D),
-              Color(0xFFC40000),
+      behavior: HitTestBehavior.opaque,
+      onTap: _handlePress,
+      child: AnimatedBuilder(
+        animation: _scale,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scale.value,
+            child: child,
+          );
+        },
+        child: Container(
+          width: 220,
+          height: 220,
+          decoration: BoxDecoration(
+            color: widget.color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: 0.30),
+                blurRadius: 30,
+                offset: const Offset(0, 12),
+              ),
+              const BoxShadow(
+                color: Colors.black12,
+                blurRadius: 10,
+                offset: Offset(0, 5),
+              ),
             ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.red.withOpacity(0.45),
-              blurRadius: 30,
-              offset: const Offset(0, 18),
-            ),
-            const BoxShadow(
-              color: Color(0xFF7A0000),
-              blurRadius: 0,
-              spreadRadius: -8,
-              offset: Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Container(
-            width: 185,
-            height: 185,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                center: Alignment(-0.3, -0.3),
-                radius: 0.9,
-                colors: [
-                  Color(0xFFFF8A8A),
-                  Color(0xFFFF3B3B),
-                  Color(0xFFD50000),
-                ],
+          child: const Center(
+            child: Text(
+              'PRESS',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 3,
               ),
             ),
           ),

@@ -21,10 +21,7 @@ class MenuButton extends StatelessWidget {
         child: SizedBox(
           width: 48,
           height: 48,
-          child: Icon(
-            icon,
-            size: 22,
-          ),
+          child: Icon(icon, size: 22),
         ),
       ),
     );

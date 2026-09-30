@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'profile_screen.dart';
+
 import '../services/press_service.dart';
-import '../widgets/menu_button.dart';
+import '../services/cosmetics_service.dart';
 import '../widgets/press_button.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,18 +14,64 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final PressService pressService = PressService();
 
+  Color buttonColor = const Color(0xFFE53935);
+
   @override
   void initState() {
     super.initState();
 
-    loadScore();
+    loadHome();
   }
 
-  Future<void> loadScore() async {
+  Future<void> loadHome() async {
     await pressService.load();
+    await loadEquippedButton();
 
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  Future<void> loadEquippedButton() async {
+    try {
+      final equipped =
+          await CosmeticsService.getEquippedCosmetics();
+
+      final buttonId = equipped['button'];
+
+      final color = _getButtonColor(buttonId);
+
+      if (mounted) {
+        setState(() {
+          buttonColor = color;
+        });
+      }
+    } catch (_) {
+      // Si le chargement échoue,
+      // on garde le bouton rouge par défaut.
+    }
+  }
+
+  Color _getButtonColor(String? buttonId) {
+    switch (buttonId) {
+      case 'button_ocean_blue':
+        return const Color(0xFF1976D2);
+
+      case 'button_neon_purple':
+        return const Color(0xFF8E24AA);
+
+      case 'button_golden':
+        return const Color(0xFFFFB300);
+
+      case 'button_holographic':
+        return const Color(0xFF7E57C2);
+
+      case 'button_void':
+        return const Color(0xFF171717);
+
+      case 'button_classic':
+      default:
+        return const Color(0xFFE53935);
     }
   }
 
@@ -39,61 +85,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F0),
-      body: SafeArea(
-        child: Stack(
+    return SafeArea(
+      bottom: false,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Positioned(
-              top: 16,
-              left: 16,
-              child: MenuButton(
-                icon: Icons.person_outline,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ProfileScreen(),
-                    ),
-                  );
-                },
+            Text(
+              '${pressService.presses}',
+              style: const TextStyle(
+                fontSize: 42,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -1,
               ),
             ),
-            Positioned(
-              top: 16,
-              right: 16,
-              child: MenuButton(
-                icon: Icons.emoji_events_outlined,
-                onTap: () {},
+
+            const SizedBox(height: 4),
+
+            const Text(
+              'PRESSES',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 3,
               ),
             ),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${pressService.presses}',
-                    style: const TextStyle(
-                      fontSize: 42,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'PRESSES',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 3,
-                    ),
-                  ),
-                  const SizedBox(height: 45),
-                  PressButton(
-                    onPressed: onPress,
-                  ),
-                ],
-              ),
+
+            const SizedBox(height: 45),
+
+            PressButton(
+              color: buttonColor,
+              onPressed: onPress,
             ),
           ],
         ),

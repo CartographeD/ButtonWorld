@@ -2,29 +2,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_shell.dart';
 import 'services/auth_service.dart';
-
 import 'services/player_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  print('1 - Flutter OK');
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  print('2 - Firebase OK');
-
   await AuthService.ensureSignedIn();
-
-  print('3 - Auth OK');
-
   await PlayerService.ensurePlayerExists();
-
-  print('4 - Player OK');
 
   runApp(const ButtonWorldApp());
 }
@@ -40,8 +30,10 @@ class ButtonWorldApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Roboto',
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE53935)),
+        scaffoldBackgroundColor: const Color(0xFFF4F4F0),
       ),
-      home: const HomeScreen(),
+      home: const MainShell(),
     );
   }
 }

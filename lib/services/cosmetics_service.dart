@@ -5,7 +5,8 @@ class CosmeticsService {
   static final FirebaseFirestore _firestore =
       FirebaseFirestore.instance;
 
-  static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final FirebaseAuth _auth =
+      FirebaseAuth.instance;
 
   static DocumentReference<Map<String, dynamic>> get _playerRef {
     final user = _auth.currentUser;
@@ -14,7 +15,9 @@ class CosmeticsService {
       throw Exception('No authenticated user.');
     }
 
-    return _firestore.collection('users').doc(user.uid);
+    return _firestore
+        .collection('users')
+        .doc(user.uid);
   }
 
   // ─────────────────────────────────────
@@ -72,7 +75,9 @@ class CosmeticsService {
   // CHECK OWNERSHIP
   // ─────────────────────────────────────
 
-  static Future<bool> ownsCosmetic(String cosmeticId) async {
+  static Future<bool> ownsCosmetic(
+    String cosmeticId,
+  ) async {
     final owned = await getOwnedCosmetics();
 
     return owned.contains(cosmeticId);
@@ -92,14 +97,19 @@ class CosmeticsService {
       throw Exception('Cosmetic is not owned.');
     }
 
-    await _playerRef.set(
-      {
-        'equippedCosmetics': {
-          category: cosmeticId,
-        },
-      },
-      SetOptions(merge: true),
-    );
+    // IMPORTANT :
+    // On modifie uniquement la catégorie concernée.
+    //
+    // Exemple :
+    // equippedCosmetics.button
+    // equippedCosmetics.counter
+    //
+    // Les autres cosmétiques équipés
+    // restent donc totalement inchangés.
+
+    await _playerRef.update({
+      'equippedCosmetics.$category': cosmeticId,
+    });
   }
 
   // ─────────────────────────────────────
@@ -115,7 +125,8 @@ class CosmeticsService {
 
     return _firestore.runTransaction<bool>(
       (transaction) async {
-        final snapshot = await transaction.get(playerRef);
+        final snapshot =
+            await transaction.get(playerRef);
 
         final data = snapshot.data();
 
@@ -123,36 +134,75 @@ class CosmeticsService {
           throw Exception('Player does not exist.');
         }
 
-        final coins = (data['coins'] as num?)?.toInt() ?? 0;
+        final coins =
+            (data['coins'] as num?)?.toInt() ?? 0;
 
-        final ownedRaw = data['ownedCosmetics'];
+        final ownedRaw =
+            data['ownedCosmetics'];
 
-        final List<String> owned = ownedRaw is List
-            ? ownedRaw
-                .map((item) => item.toString())
-                .toList()
-            : [];
+        final List<String> owned =
+            ownedRaw is List
+                ? ownedRaw
+                    .map(
+                      (item) => item.toString(),
+                    )
+                    .toList()
+                : [];
 
-        // Already owned
+        // ─────────────────────────────
+        // ALREADY OWNED
+        // ─────────────────────────────
+
         if (owned.contains(cosmeticId)) {
           return false;
         }
 
-        // Not enough coins
+        // ─────────────────────────────
+        // NOT ENOUGH COINS
+        // ─────────────────────────────
+
         if (coins < price) {
-          throw Exception('Not enough coins.');
+          throw Exception(
+            'Not enough coins.',
+          );
         }
 
+        // ─────────────────────────────
+        // ADD TO INVENTORY
+        // ─────────────────────────────
+
         owned.add(cosmeticId);
+
+        // ─────────────────────────────
+        // SAVE
+        // ─────────────────────────────
+        //
+        // IMPORTANT :
+        // On met à jour uniquement le champ
+        // imbriqué de la catégorie.
+        //
+        // Donc si :
+        //
+        // button = button_void
+        //
+        // et qu'on achète :
+        //
+        // counter_glitch
+        //
+        // on obtient :
+        //
+        // button = button_void
+        // counter = counter_glitch
+        //
+        // Le bouton ne disparaît plus.
 
         transaction.update(
           playerRef,
           {
             'coins': coins - price,
             'ownedCosmetics': owned,
-            'equippedCosmetics': {
-              category: cosmeticId,
-            },
+            'equippedCosmetics.$category':
+                cosmeticId,
           },
         );
 

@@ -12,7 +12,20 @@
           "package_name": "com.cartographe.buttonworld"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "328254761752-vaaun7siro17pn0m4f948d8heams1nmm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cartographe.buttonworld",
+            "certificate_hash": "6d072881248f6395894d7224585e0b0b01c3a9ba"
+          }
+        },
+        {
+          "client_id": "328254761752-5gq5gkv6jkct85889mcsvk1ostr02ese.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDIVGZXumJGvQWb-ANvaPQ4Pa2AmU24THE"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "328254761752-5gq5gkv6jkct85889mcsvk1ostr02ese.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -16,7 +16,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
   final List<_Goal> goals = const [
     _Goal(
       value: 10,
-      title: 'FIRST PRESS',
+      title: 'FIRST TAP',
       description: 'Your journey begins.',
       reward: 50,
     ),

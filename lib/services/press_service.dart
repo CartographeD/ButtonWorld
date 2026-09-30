@@ -19,24 +19,42 @@ class PressService {
   int bestTapStreak = 0;
   DateTime? lastPressTime;
 
+  // ─────────────────────────────────────
+  // LOAD
+  // ─────────────────────────────────────
+
   Future<void> load() async {
-    final localPresses = await LocalScoreService.getPresses();
-    final localBestStreak = await LocalScoreService.getBestTapStreak();
-    final firebasePlayer = await PlayerService.getPlayer();
+    final localBestStreak =
+        await LocalScoreService.getBestTapStreak();
 
-    presses = localPresses > firebasePlayer.presses
-        ? localPresses
-        : firebasePlayer.presses;
+    final firebasePlayer =
+        await PlayerService.getPlayer();
 
-    bestTapStreak = localBestStreak > firebasePlayer.bestTapStreak
-        ? localBestStreak
-        : firebasePlayer.bestTapStreak;
+    // Firebase est la source de vérité
+    // pour le nombre de PRESS.
+    presses = firebasePlayer.presses;
 
-    await LocalScoreService.savePresses(presses);
-    await LocalScoreService.saveBestTapStreak(bestTapStreak);
+    // Pour le streak, on conserve le meilleur
+    // score local ou Firebase.
+    bestTapStreak =
+        localBestStreak > firebasePlayer.bestTapStreak
+            ? localBestStreak
+            : firebasePlayer.bestTapStreak;
 
-    if (presses > firebasePlayer.presses ||
-        bestTapStreak > firebasePlayer.bestTapStreak) {
+    // On remet le cache local à jour avec
+    // la valeur du compte Firebase.
+    await LocalScoreService.savePresses(
+      presses,
+    );
+
+    await LocalScoreService.saveBestTapStreak(
+      bestTapStreak,
+    );
+
+    // Si le meilleur streak local était supérieur
+    // à celui de Firebase, on le synchronise.
+    if (bestTapStreak >
+        firebasePlayer.bestTapStreak) {
       PlayerService.schedulePressSync(
         presses: presses,
         bestTapStreak: bestTapStreak,
@@ -44,12 +62,20 @@ class PressService {
     }
   }
 
+  // ─────────────────────────────────────
+  // REGISTER PRESS
+  // ─────────────────────────────────────
+
   Future<PressResult> registerPress() async {
     final now = DateTime.now();
+
     presses++;
 
     if (lastPressTime != null &&
-        now.difference(lastPressTime!).inMilliseconds <= 800) {
+        now
+                .difference(lastPressTime!)
+                .inMilliseconds <=
+            800) {
       tapStreak++;
     } else {
       tapStreak = 1;
@@ -57,20 +83,29 @@ class PressService {
 
     lastPressTime = now;
 
-    final wasNewBest = tapStreak > bestTapStreak;
+    final wasNewBest =
+        tapStreak > bestTapStreak;
+
     if (wasNewBest) {
       bestTapStreak = tapStreak;
-      await LocalScoreService.saveBestTapStreak(bestTapStreak);
+
+      await LocalScoreService
+          .saveBestTapStreak(
+        bestTapStreak,
+      );
     }
 
-    await LocalScoreService.savePresses(presses);
+    await LocalScoreService.savePresses(
+      presses,
+    );
 
     PlayerService.schedulePressSync(
       presses: presses,
       bestTapStreak: bestTapStreak,
     );
 
-    final milestone = _milestoneFor(presses);
+    final milestone =
+        _milestoneFor(presses);
 
     return PressResult(
       newBestStreak: wasNewBest,
@@ -78,6 +113,10 @@ class PressService {
       milestone: milestone,
     );
   }
+
+  // ─────────────────────────────────────
+  // MILESTONES
+  // ─────────────────────────────────────
 
   int? _milestoneFor(int value) {
     const milestones = [
@@ -95,6 +134,8 @@ class PressService {
       1000000,
     ];
 
-    return milestones.contains(value) ? value : null;
+    return milestones.contains(value)
+        ? value
+        : null;
   }
 }
